@@ -3,7 +3,7 @@ import { ConversationManager, ConversationState } from '../lib/ConversationManag
 import { PulsingBubble } from './PulsingBubble';
 
 export const ConversationApp: React.FC = () => {
-  const [websocketUrl, setWebsocketUrl] = useState('ws://localhost:8000/chat/conversation/start');
+  const [websocketUrl, setWebsocketUrl] = useState('ws://localhost:8000/ws/conversation');
   const [conversationState, setConversationState] = useState<ConversationState>({
     isConnected: false,
     isRecording: false,

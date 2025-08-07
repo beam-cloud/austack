@@ -1,0 +1,16 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    portaudio19-dev \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY . /app
+
+RUN pip install --no-cache-dir -e .
+
+EXPOSE 8000
+
+CMD ["python", "-m", "austack.server.app"]

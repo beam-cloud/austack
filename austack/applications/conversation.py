@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 class ConversationApp:
     def __init__(
-        self, 
+        self,
         websocket: WebSocket,
         stt: AsyncSpeechToTextBase | None = None,
         llm: AbstractLLMBase | None = None,

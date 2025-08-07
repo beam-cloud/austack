@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  austack-server:
+    build:
+      context: ../../..
+      dockerfile: examples/conversational/docker/Dockerfile.server
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app
+    networks:
+      - austack-network
+
+  react-app:
+    build:
+      context: ../../..
+      dockerfile: examples/conversational/docker/Dockerfile.react
+    ports:
+      - "3000:3000"
+    networks:
+      - austack-network
+
+networks:
+  austack-network:
+    driver: bridge
