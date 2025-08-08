@@ -11,20 +11,20 @@ from .audio.config import AudioConfig
 class ConversationClient:
     """
     Main client for handling audio conversations via WebSocket.
-    
+
     Integrates audio input/output with WebSocket communication for real-time
     conversational AI interactions.
     """
-    
+
     def __init__(
-        self, 
+        self,
         websocket_url: str,
         audio_config: Optional[AudioConfig] = None,
         connection_timeout: int = 10,
     ):
         """
         Initialize the conversation client.
-        
+
         Args:
             websocket_url: WebSocket server URL for conversation
             audio_config: Audio configuration settings. If None, uses defaults.
@@ -35,7 +35,7 @@ class ConversationClient:
         self.connection_timeout = connection_timeout
         self.audio_config = audio_config or AudioConfig.create_default()
         self.websocket = None
-        
+
         self.audio_interface = AudioInterface(
             input_callback=self._on_audio_input,
             audio_config=self.audio_config,
@@ -53,14 +53,10 @@ class ConversationClient:
             return
 
         try:
-            self.websocket = websocket.create_connection(
-                self.websocket_url,
-                timeout=self.connection_timeout,
-                enable_multithread=True
-            )
+            self.websocket = websocket.create_connection(self.websocket_url, timeout=self.connection_timeout, enable_multithread=True)
             # Set a shorter timeout for recv() operations
             self.websocket.settimeout(0.1)
-            
+
             print(f"Connected to WebSocket: {self.websocket_url}")
         except Exception as e:
             print(f"Error connecting to websocket: {e}")
@@ -71,7 +67,7 @@ class ConversationClient:
         if not self.websocket or not self.running:
             print("Cannot send audio: WebSocket not connected")
             return
-            
+
         try:
             self.websocket.send(audio_data, opcode=websocket.ABNF.OPCODE_BINARY)
         except websocket.WebSocketConnectionClosedException:
@@ -83,7 +79,7 @@ class ConversationClient:
         if not self.websocket or not self.running:
             print("Cannot send message: WebSocket not connected")
             return
-            
+
         try:
             message_str = json.dumps(message)
             self.websocket.send(message_str)
@@ -97,7 +93,7 @@ class ConversationClient:
 
     def disconnect(self):
         self.running = False
-            
+
         if self.websocket:
             try:
                 self.websocket.close()
@@ -109,11 +105,11 @@ class ConversationClient:
         try:
             self.connect()
             self.audio_interface.start()
-            
+
             self.running = True
             print(f"Conversation started with {self.websocket_url}")
             print("Press Ctrl+C to stop the conversation")
-            
+
             while self.running:
                 try:
                     message = self.websocket.recv()
@@ -133,11 +129,11 @@ class ConversationClient:
                     self.running = False
                 except Exception as e:
                     print(f"Error during conversation: {e}")
-                
+
         except KeyboardInterrupt:
             print("\nKeyboard interrupt - stopping conversation")
         except Exception as e:
-            print(f"Error during conversation: {e}")  
+            print(f"Error during conversation: {e}")
         finally:
             self.stop_conversation()
 
@@ -177,7 +173,7 @@ class ConversationClient:
             input_device_index=input_device_index,
             output_device_index=output_device_index,
         )
-        
+
         return cls(
             websocket_url=websocket_url,
             audio_config=audio_config,

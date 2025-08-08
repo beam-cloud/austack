@@ -16,6 +16,7 @@ import typing_extensions
 from . import stream_types, types
 from .runtime import DoNotUseDirectlyCallManager, BamlCallOptions
 
+
 class LlmResponseParser:
     __options: DoNotUseDirectlyCallManager
 
@@ -23,12 +24,15 @@ class LlmResponseParser:
         self.__options = options
 
     def GenerateResponse(
-        self, llm_response: str, baml_options: BamlCallOptions = {},
+        self,
+        llm_response: str,
+        baml_options: BamlCallOptions = {},
     ) -> str:
-        result = self.__options.merge_options(baml_options).parse_response(function_name="GenerateResponse", llm_response=llm_response, mode="request")
+        result = self.__options.merge_options(baml_options).parse_response(
+            function_name="GenerateResponse", llm_response=llm_response, mode="request"
+        )
         return typing.cast(str, result)
 
-    
 
 class LlmStreamParser:
     __options: DoNotUseDirectlyCallManager
@@ -37,9 +41,11 @@ class LlmStreamParser:
         self.__options = options
 
     def GenerateResponse(
-        self, llm_response: str, baml_options: BamlCallOptions = {},
+        self,
+        llm_response: str,
+        baml_options: BamlCallOptions = {},
     ) -> str:
-        result = self.__options.merge_options(baml_options).parse_response(function_name="GenerateResponse", llm_response=llm_response, mode="stream")
+        result = self.__options.merge_options(baml_options).parse_response(
+            function_name="GenerateResponse", llm_response=llm_response, mode="stream"
+        )
         return typing.cast(str, result)
-
-    

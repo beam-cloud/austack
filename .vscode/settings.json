@@ -1,0 +1,5 @@
+{
+  "python.languageServer": "None",
+  "editor.defaultFormatter": "charliermarsh.ruff",
+  "ruff.configuration": "pyproject.toml"
+}

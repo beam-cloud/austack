@@ -19,9 +19,10 @@ dotenv.load_dotenv()
 
 logger = logging.getLogger(__name__)
 
+
 class OnTranscriptProtocol(Protocol):
-    def __call__(self, transcript: str) -> None:
-        ...
+    def __call__(self, transcript: str) -> None: ...
+
 
 class DeepgramSpeechToTextManager(AsyncSpeechToTextBase):
     def __init__(self, **kwargs):
@@ -36,7 +37,7 @@ class DeepgramSpeechToTextManager(AsyncSpeechToTextBase):
         deepgram: DeepgramClient = DeepgramClient(os.getenv("DEEPGRAM_API_KEY", ""), config)
         self.dg_connection = deepgram.listen.asyncwebsocket.v("1")
         self.last_speech_start_time = time.time()
-    
+
         async def on_message(*_, result: Any, **__):
             logger.debug("STT on_message handler called", extra={"handler": "on_message"})
             sentence = result.channel.alternatives[0].transcript
@@ -44,13 +45,19 @@ class DeepgramSpeechToTextManager(AsyncSpeechToTextBase):
                 self.current_sentence += sentence
                 if not self.current_sentence:
                     self.last_speech_start_time = time.time()
-                
+
         async def on_speech_started(result: Any, *_, **__):
             logger.debug("STT on_speech_started handler called", extra={"handler": "on_speech_started"})
             logger.info(f"Speech started: {result}")
 
         async def on_utterance_end(result: Any, *_, **__):
-            logger.debug("STT on_utterance_end handler called", extra={"handler": "on_utterance_end", "transcript_length": len(self.current_sentence)})
+            logger.debug(
+                "STT on_utterance_end handler called",
+                extra={
+                    "handler": "on_utterance_end",
+                    "transcript_length": len(self.current_sentence),
+                },
+            )
             logger.info(f"Utterance end: {result}")
             if self.on_final:
                 await self.on_final(self.current_sentence)
@@ -91,15 +98,21 @@ class DeepgramSpeechToTextManager(AsyncSpeechToTextBase):
             except asyncio.TimeoutError:
                 continue
             except Exception as e:
-                logger.error("STT process_audio handler error", extra={"handler": "process_audio", "error": e})
+                logger.error(
+                    "STT process_audio handler error",
+                    extra={"handler": "process_audio", "error": e},
+                )
                 continue
 
     async def add_audio_chunk(self, audio: bytes):
-        logger.debug("STT add_audio_chunk handler called", extra={"handler": "add_audio_chunk", "audio_size": len(audio)})
+        logger.debug(
+            "STT add_audio_chunk handler called",
+            extra={"handler": "add_audio_chunk", "audio_size": len(audio)},
+        )
         await self.audio_queue.put(audio)
-    
+
     async def stop(self):
         self.is_running = False
         if self.process_audio_task:
             self.process_audio_task.cancel()
-        await self.dg_connection.finish()  # type: ignore 
+        await self.dg_connection.finish()  # type: ignore

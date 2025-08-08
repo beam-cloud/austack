@@ -18,8 +18,8 @@ logger = logging.getLogger(__name__)
 
 
 class OnAudioDataProtocol(Protocol):
-    def __call__(self, audio: bytes) -> None:
-        ...
+    def __call__(self, audio: bytes) -> None: ...
+
 
 class DeepgramTextToSpeechManager(AsyncTextToSpeechBase):
     def __init__(self, **kwargs):
@@ -34,19 +34,18 @@ class DeepgramTextToSpeechManager(AsyncTextToSpeechBase):
         )
         self.dg_connection = deepgram.speak.asyncwebsocket.v("1")
 
-        async def on_binary_data(cls, data: Any, **kwargs):      
+        async def on_binary_data(cls, data: Any, **kwargs):
             logger.debug("TTS on_binary_data handler called", extra={"handler": "on_binary_data", "data_size": len(data)})
             if self.on_partial:
                 await self.on_partial(data)
-        
+
         async def on_error(cls, error: Any, **kwargs):
             logger.debug("TTS on_error handler called", extra={"handler": "on_error"})
             logger.error(f"Deepgram TTS Error: {error}")
 
-
         self.dg_connection.on(SpeakWebSocketEvents.AudioData, on_binary_data)
         self.dg_connection.on(SpeakWebSocketEvents.Error, on_error)
-        
+
         if not await self.dg_connection.start(
             {
                 "model": "aura-2-thalia-en",
@@ -68,7 +67,7 @@ class DeepgramTextToSpeechManager(AsyncTextToSpeechBase):
                 await self.dg_connection.flush()
         except Exception as e:
             logger.error(f"Error in synthesize: {e}")
-    
+
     async def stop(self):
         self.is_running = False
         if self.dg_connection:

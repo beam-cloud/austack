@@ -51,22 +51,18 @@ dev = [
 austack-server = "austack.server.app:main"
 
 [project.urls]
-Homepage = "https://github.com/yourusername/austack"
-Repository = "https://github.com/yourusername/austack.git"
-Issues = "https://github.com/yourusername/austack/issues"
+Homepage = "https://github.com/beam-cloud/austack"
+Repository = "https://github.com/beam-cloud/austack.git"
+Issues = "https://github.com/beam-cloud/austack/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["austack"]
 
-[tool.black]
-line-length = 100
-target-version = ['py38']
-
 [tool.ruff]
-line-length = 100
+line-length = 140
 target-version = "py38"
 select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "ISC", "PIE", "PT", "SIM"]
-ignore = ["E501"]
+ignore = ["E501", "I001"]
 
 [tool.mypy]
 python_version = "3.8"

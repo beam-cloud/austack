@@ -12,7 +12,7 @@ from .config import AudioConfig, AudioStreamConfig
 
 class AudioInterface:
     """Generalized audio interface for handling input/output streams with voice activity detection."""
-    
+
     def __init__(
         self,
         input_callback: Callable[[bytes], None],
@@ -28,7 +28,7 @@ class AudioInterface:
         self.input_callback = input_callback
         self.config = audio_config or AudioConfig.create_default()
         self.stream_config = self.config.stream
-        
+
         # Audio components
         self.audio = pyaudio.PyAudio()
         self.input_stream: Optional[pyaudio.Stream] = None
@@ -107,11 +107,7 @@ class AudioInterface:
             self.audio_buffer.append(in_data)
 
         # Send batched audio periodically
-        if (
-            current_time - self.last_send_time >= self.stream_config.send_interval
-            and self.audio_buffer
-            and self.should_send_audio()
-        ):
+        if current_time - self.last_send_time >= self.stream_config.send_interval and self.audio_buffer and self.should_send_audio():
             # Combine buffered audio and send
             combined_audio = b"".join(self.audio_buffer)
             self.input_queue.put_nowait(combined_audio)
@@ -131,7 +127,7 @@ class AudioInterface:
         while self.is_running:
             try:
                 audio_data = self.input_queue.get(timeout=0.1)
-                
+
                 # Send audio data via callback
                 print(f"Sending {len(audio_data)} bytes of audio")
                 self.input_callback(audio_data)
@@ -148,7 +144,7 @@ class AudioInterface:
                 audio_data = self.output_queue.get(timeout=0.1)
                 if self.output_stream:
                     self.output_stream.write(audio_data)
-                    
+
             except queue.Empty:
                 continue
             except Exception as e:
@@ -167,7 +163,7 @@ class AudioInterface:
                 input_device_index=self.stream_config.input_device_index,
                 frames_per_buffer=self.stream_config.input_chunk_size,
                 stream_callback=self._input_callback,  # type: ignore
-                start=True
+                start=True,
             )
 
             # Start output stream
@@ -177,7 +173,7 @@ class AudioInterface:
                 rate=self.stream_config.output_sample_rate,
                 output=True,
                 output_device_index=self.stream_config.output_device_index,
-                start=True
+                start=True,
             )
 
             self.is_running = True
@@ -185,7 +181,7 @@ class AudioInterface:
             # Start processing threads
             self.input_thread = threading.Thread(target=self._process_input_queue, daemon=True)
             self.output_thread = threading.Thread(target=self._process_output_queue, daemon=True)
-            
+
             self.input_thread.start()
             self.output_thread.start()
 
@@ -221,7 +217,7 @@ class AudioInterface:
         """Clean up all resources."""
         self.stop()
         self.audio.terminate()
-        
+
     def update_config(self, audio_config: AudioConfig):
         """Update audio configuration. Note: requires restart to take effect."""
         self.config = audio_config

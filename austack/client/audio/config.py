@@ -6,21 +6,21 @@ import pyaudio
 @dataclass
 class AudioStreamConfig:
     """Configuration for audio input/output streams."""
-    
+
     # Input stream configuration
     input_chunk_size: int = 1024
     input_sample_rate: int = 16000
     input_channels: int = 1
     input_device_index: Optional[int] = None
-    
-    # Output stream configuration  
+
+    # Output stream configuration
     output_sample_rate: int = 16000
     output_channels: int = 1
     output_device_index: Optional[int] = None
-    
+
     # Audio format
     format: int = pyaudio.paInt16
-    
+
     # Voice activity detection parameters
     silence_threshold: float = 0.01
     silence_timeout: float = 2.0
@@ -30,18 +30,18 @@ class AudioStreamConfig:
 @dataclass
 class AudioConfig:
     """Main audio configuration container."""
-    
+
     stream: AudioStreamConfig = None
-    
+
     def __post_init__(self):
         if self.stream is None:
             self.stream = AudioStreamConfig()
-    
+
     @classmethod
     def create_default(cls) -> "AudioConfig":
         """Create default audio configuration."""
         return cls(stream=AudioStreamConfig())
-    
+
     @classmethod
     def create_custom(
         cls,

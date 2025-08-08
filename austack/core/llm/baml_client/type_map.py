@@ -15,12 +15,8 @@ from . import stream_types
 
 
 type_map = {
-
     "types.ConversationHistory": types.ConversationHistory,
     "stream_types.ConversationHistory": stream_types.ConversationHistory,
-
     "types.ConversationalAgentInput": types.ConversationalAgentInput,
     "stream_types.ConversationalAgentInput": stream_types.ConversationalAgentInput,
-
-
 }
