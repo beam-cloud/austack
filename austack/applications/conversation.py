@@ -42,35 +42,27 @@ class ConversationApp:
         # Setup callbacks
         self.stt.setup(on_final=self.on_stt_full_transcript, on_partial=self.on_stt_partial_transcript)
         self.tts.setup(on_partial=self.on_tts_partial_audio)
-        self.llm.setup(on_sentence=on_llm_sentence or self.on_llm_sentence)
+        self.llm.setup(on_full_response=on_llm_sentence or self.on_llm_sentence)
 
     async def on_stt_full_transcript(self, transcript: str):
-        # logger.debug(f"STT final transcript: {transcript}")
         logger.info(f"STT final transcript: {transcript}")
         self.turn_taking_manager.start_agent_turn()
         await self.llm.generate_response(transcript)
 
     async def on_stt_partial_transcript(self, transcript: str):
-        # logger.debug(f"STT partial transcript: {transcript}")
-        logger.info(f"STT partial transcript: {transcript}")
         await self.turn_taking_manager.start_user_turn(self.llm)
 
     async def on_llm_sentence(self, text: str):
-        # logger.debug(f"LLM sentence: {text}")
         logger.info(f"LLM sentence: {text}")
         if self.turn_taking_manager.is_agent_turn:
             await self.tts.synthesize(text)
         else:
-            # logger.debug("Blocked LLM sentence - not agent turn")
             logger.info("Blocked LLM sentence - not agent turn")
 
     async def on_tts_partial_audio(self, audio: bytes):
         if self.turn_taking_manager.is_agent_turn:
-            # logger.debug(f"Sending audio to websocket: {len(audio)} bytes")
-            logger.info(f"Sending audio to websocket: {len(audio)} bytes")
             await self.websocket.send_bytes(audio)
         else:
-            # logger.debug("Blocked TTS audio - not agent turn")
             logger.info("Blocked TTS audio - not agent turn")
 
     async def start(self):
