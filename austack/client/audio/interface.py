@@ -1,3 +1,4 @@
+import logging
 import queue
 import threading
 import time
@@ -8,6 +9,8 @@ import pyaudio
 import webrtcvad
 
 from .config import AudioConfig, AudioStreamConfig
+
+logger = logging.getLogger(__name__)
 
 
 class AudioInterface:
@@ -129,12 +132,12 @@ class AudioInterface:
                 audio_data = self.input_queue.get(timeout=0.1)
 
                 # Send audio data via callback
-                print(f"Sending {len(audio_data)} bytes of audio")
+                logger.info(f"Sending {len(audio_data)} bytes of audio")
                 self.input_callback(audio_data)
             except queue.Empty:
                 continue
             except Exception as e:
-                print(f"Error processing input audio: {e}")
+                logger.info(f"Error processing input audio: {e}")
                 continue
 
     def _process_output_queue(self):
@@ -148,7 +151,7 @@ class AudioInterface:
             except queue.Empty:
                 continue
             except Exception as e:
-                print(f"Error playing audio: {e}")
+                logger.info(f"Error playing audio: {e}")
                 continue
 
     def start(self):

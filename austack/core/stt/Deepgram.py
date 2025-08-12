@@ -41,10 +41,17 @@ class DeepgramSpeechToTextManager(AsyncSpeechToTextBase):
         async def on_message(*_, result: Any, **__):
             logger.debug("STT on_message handler called", extra={"handler": "on_message"})
             sentence = result.channel.alternatives[0].transcript
-            if result.speech_final:
+
+            if result.speech_final and len(sentence) > 0:
+                logger.info(f"STT final transcript: {sentence}")
                 self.current_sentence += sentence
                 if not self.current_sentence:
                     self.last_speech_start_time = time.time()
+
+            elif len(sentence) > 0 and self.on_partial:
+                logger.info(f"STT partial transcript: {sentence}")
+                # Call partial callback for interim results (utterance_start detection)
+                await self.on_partial(sentence)
 
         async def on_speech_started(result: Any, *_, **__):
             logger.debug("STT on_speech_started handler called", extra={"handler": "on_speech_started"})
@@ -59,7 +66,7 @@ class DeepgramSpeechToTextManager(AsyncSpeechToTextBase):
                 },
             )
             logger.info(f"Utterance end: {result}")
-            if self.on_final:
+            if self.on_final and len(self.current_sentence) > 0:
                 await self.on_final(self.current_sentence)
             self.current_sentence = ""
             logger.info(f"Speech end: {time.time() - self.last_speech_start_time}")
@@ -94,13 +101,11 @@ class DeepgramSpeechToTextManager(AsyncSpeechToTextBase):
                 audio = await asyncio.wait_for(self.audio_queue.get(), timeout=0.5)
                 if audio:
                     await self.dg_connection.send(audio)  # type: ignore
-                    await self.dg_connection.flush()  # type: ignore
             except asyncio.TimeoutError:
                 continue
             except Exception as e:
                 logger.error(
-                    "STT process_audio handler error",
-                    extra={"handler": "process_audio", "error": e},
+                    f"STT process_audio handler error, {e}",
                 )
                 continue
 

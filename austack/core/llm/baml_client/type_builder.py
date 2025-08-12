@@ -13,28 +13,22 @@
 import typing
 from baml_py import type_builder
 from baml_py import baml_py
-
 # These are exports, not used here, hence the linter is disabled
-from baml_py.baml_py import FieldType, EnumValueBuilder, EnumBuilder, ClassBuilder  # noqa: F401 # pylint: disable=unused-import
+from baml_py.baml_py import FieldType, EnumValueBuilder, EnumBuilder, ClassBuilder # noqa: F401 # pylint: disable=unused-import
 from .globals import DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME
-
 
 class TypeBuilder(type_builder.TypeBuilder):
     def __init__(self):
-        super().__init__(
-            classes=set(
-                [
-                    "ConversationHistory",
-                    "ConversationalAgentInput",
-                ]
-            ),
-            enums=set([]),
-            runtime=DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME,
-        )
+        super().__init__(classes=set(
+          ["ConversationHistory","ConversationalAgentInput",]
+        ), enums=set(
+          []
+        ), runtime=DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME)
 
     # #########################################################################
     # Generated enums 0
     # #########################################################################
+
 
     # #########################################################################
     # Generated classes 2
@@ -49,6 +43,7 @@ class TypeBuilder(type_builder.TypeBuilder):
         return ConversationalAgentInputViewer(self)
 
 
+
 # #########################################################################
 # Generated enums 0
 # #########################################################################
@@ -58,17 +53,11 @@ class TypeBuilder(type_builder.TypeBuilder):
 # Generated classes 2
 # #########################################################################
 
-
 class ConversationHistoryAst:
     def __init__(self, tb: type_builder.TypeBuilder):
-        _tb = tb._tb  # type: ignore (we know how to use this private attribute)
+        _tb = tb._tb # type: ignore (we know how to use this private attribute)
         self._bldr = _tb.class_("ConversationHistory")
-        self._properties: typing.Set[str] = set(
-            [
-                "role",
-                "content",
-            ]
-        )
+        self._properties: typing.Set[str] = set([  "role",  "content",  ])
         self._props = ConversationHistoryProperties(self._bldr, self._properties)
 
     def type(self) -> baml_py.FieldType:
@@ -83,35 +72,35 @@ class ConversationHistoryViewer(ConversationHistoryAst):
     def __init__(self, tb: type_builder.TypeBuilder):
         super().__init__(tb)
 
+    
     def list_properties(self) -> typing.List[typing.Tuple[str, type_builder.ClassPropertyViewer]]:
         return [(name, type_builder.ClassPropertyViewer(self._bldr.property(name))) for name in self._properties]
+    
 
 
 class ConversationHistoryProperties:
     def __init__(self, bldr: baml_py.ClassBuilder, properties: typing.Set[str]):
         self.__bldr = bldr
-        self.__properties = properties  # type: ignore (we know how to use this private attribute) # noqa: F821
+        self.__properties = properties # type: ignore (we know how to use this private attribute) # noqa: F821
 
+    
+    
     @property
     def role(self) -> type_builder.ClassPropertyViewer:
         return type_builder.ClassPropertyViewer(self.__bldr.property("role"))
-
+    
     @property
     def content(self) -> type_builder.ClassPropertyViewer:
         return type_builder.ClassPropertyViewer(self.__bldr.property("content"))
+    
+    
 
 
 class ConversationalAgentInputAst:
     def __init__(self, tb: type_builder.TypeBuilder):
-        _tb = tb._tb  # type: ignore (we know how to use this private attribute)
+        _tb = tb._tb # type: ignore (we know how to use this private attribute)
         self._bldr = _tb.class_("ConversationalAgentInput")
-        self._properties: typing.Set[str] = set(
-            [
-                "conversation_history",
-                "system_prompt",
-                "user_message",
-            ]
-        )
+        self._properties: typing.Set[str] = set([  "conversation_history",  "system_prompt",  "user_message",  ])
         self._props = ConversationalAgentInputProperties(self._bldr, self._properties)
 
     def type(self) -> baml_py.FieldType:
@@ -126,23 +115,30 @@ class ConversationalAgentInputViewer(ConversationalAgentInputAst):
     def __init__(self, tb: type_builder.TypeBuilder):
         super().__init__(tb)
 
+    
     def list_properties(self) -> typing.List[typing.Tuple[str, type_builder.ClassPropertyViewer]]:
         return [(name, type_builder.ClassPropertyViewer(self._bldr.property(name))) for name in self._properties]
+    
 
 
 class ConversationalAgentInputProperties:
     def __init__(self, bldr: baml_py.ClassBuilder, properties: typing.Set[str]):
         self.__bldr = bldr
-        self.__properties = properties  # type: ignore (we know how to use this private attribute) # noqa: F821
+        self.__properties = properties # type: ignore (we know how to use this private attribute) # noqa: F821
 
+    
+    
     @property
     def conversation_history(self) -> type_builder.ClassPropertyViewer:
         return type_builder.ClassPropertyViewer(self.__bldr.property("conversation_history"))
-
+    
     @property
     def system_prompt(self) -> type_builder.ClassPropertyViewer:
         return type_builder.ClassPropertyViewer(self.__bldr.property("system_prompt"))
-
+    
     @property
     def user_message(self) -> type_builder.ClassPropertyViewer:
         return type_builder.ClassPropertyViewer(self.__bldr.property("user_message"))
+    
+    
+

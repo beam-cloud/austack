@@ -1,5 +1,22 @@
 from abc import ABC, abstractmethod
 from typing import Protocol, Coroutine, Any
+from enum import Enum
+import time
+from dataclasses import dataclass
+
+
+class TranscriptionState(Enum):
+    GENERATING = "generating"
+    PROBABLY_FINAL = "probably_final"
+    CONFIRMED_IS_FINAL = "confirmed_is_final"
+
+
+@dataclass
+class TranscriptionMessage:
+    text: str
+    state: TranscriptionState
+    timestamp: float
+    message_id: str
 
 
 class OnTranscriptProtocol(Protocol):
@@ -56,6 +73,10 @@ class AbstractLLMBase(ABC):
         self.on_sentence = on_sentence
         self.on_full_response = on_full_response
         return self
+
+    @abstractmethod
+    async def interrupt(self, save_in_conversation: bool = True):
+        raise NotImplementedError
 
     @abstractmethod
     async def generate_response(self, prompt: str):

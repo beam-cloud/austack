@@ -18,29 +18,22 @@ import baml_py
 
 from . import types
 
-StreamStateValueT = typing.TypeVar("StreamStateValueT")
-
-
+StreamStateValueT = typing.TypeVar('StreamStateValueT')
 class StreamState(BaseModel, typing.Generic[StreamStateValueT]):
     value: StreamStateValueT
     state: typing_extensions.Literal["Pending", "Incomplete", "Complete"]
-
-
 # #########################################################################
 # Generated classes (2)
 # #########################################################################
-
 
 class ConversationHistory(BaseModel):
     role: typing.Optional[str] = None
     content: typing.Optional[str] = None
 
-
 class ConversationalAgentInput(BaseModel):
     conversation_history: typing.List["ConversationHistory"]
     system_prompt: typing.Optional[str] = None
     user_message: typing.Optional[str] = None
-
 
 # #########################################################################
 # Generated type aliases (0)

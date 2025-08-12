@@ -35,7 +35,7 @@ class DeepgramTextToSpeechManager(AsyncTextToSpeechBase):
         self.dg_connection = deepgram.speak.asyncwebsocket.v("1")
 
         async def on_binary_data(cls, data: Any, **kwargs):
-            logger.debug("TTS on_binary_data handler called", extra={"handler": "on_binary_data", "data_size": len(data)})
+            # logger.debug("TTS on_binary_data handler called", extra={"handler": "on_binary_data", "data_size": len(data)})
             if self.on_partial:
                 await self.on_partial(data)
 
@@ -62,6 +62,7 @@ class DeepgramTextToSpeechManager(AsyncTextToSpeechBase):
 
     async def synthesize(self, text: str):
         try:
+            logger.info(f"Sending text to Deepgram TTS: {text}")
             if self.dg_connection and await self.dg_connection.is_connected():
                 await self.dg_connection.send_text(text)
                 await self.dg_connection.flush()

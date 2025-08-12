@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import FastAPI, WebSocket
 from austack.applications.conversation import ConversationApp
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 

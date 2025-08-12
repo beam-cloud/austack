@@ -12,6 +12,7 @@ from austack.core.base import (
 from austack.core.stt.Deepgram import DeepgramSpeechToTextManager
 from austack.core.tts.Deepgram import DeepgramTextToSpeechManager
 from austack.core.llm.Baml import BamlLLMManager
+from austack.core.turn_taking import TurnTakingManager
 
 logger = logging.getLogger(__name__)
 
@@ -30,30 +31,47 @@ class ConversationApp:
         self.websocket = websocket
         self.is_running = False
 
-        self.stt = (stt or DeepgramSpeechToTextManager()).setup(on_final=on_stt_full_transcript or self.on_stt_full_transcript)
-        self.tts = (tts or DeepgramTextToSpeechManager()).setup(on_partial=on_tts_partial_audio or self.on_tts_partial_audio)
-        self.llm = (llm or BamlLLMManager()).setup(on_sentence=on_llm_sentence or self.on_llm_sentence)
+        # Initialize components
+        self.stt = stt or DeepgramSpeechToTextManager()
+        self.tts = tts or DeepgramTextToSpeechManager()
+        self.llm = llm or BamlLLMManager()
 
-    async def on_llm_sentence(self, text: str):
-        logger.debug(
-            "Conversation on_llm_sentence override handler called",
-            extra={"handler": "on_llm_sentence", "text_length": len(text)},
-        )
-        await self.tts.synthesize(text)
+        # Initialize turn taking manager
+        self.turn_taking_manager = TurnTakingManager()
+
+        # Setup callbacks
+        self.stt.setup(on_final=self.on_stt_full_transcript, on_partial=self.on_stt_partial_transcript)
+        self.tts.setup(on_partial=self.on_tts_partial_audio)
+        self.llm.setup(on_sentence=on_llm_sentence or self.on_llm_sentence)
 
     async def on_stt_full_transcript(self, transcript: str):
-        logger.debug(
-            "Conversation on_stt_full_transcript override handler called",
-            extra={"handler": "on_stt_full_transcript", "transcript_length": len(transcript)},
-        )
+        # logger.debug(f"STT final transcript: {transcript}")
+        logger.info(f"STT final transcript: {transcript}")
+        self.turn_taking_manager.start_agent_turn()
         await self.llm.generate_response(transcript)
 
+    async def on_stt_partial_transcript(self, transcript: str):
+        # logger.debug(f"STT partial transcript: {transcript}")
+        logger.info(f"STT partial transcript: {transcript}")
+        await self.turn_taking_manager.start_user_turn(self.llm)
+
+    async def on_llm_sentence(self, text: str):
+        # logger.debug(f"LLM sentence: {text}")
+        logger.info(f"LLM sentence: {text}")
+        if self.turn_taking_manager.is_agent_turn:
+            await self.tts.synthesize(text)
+        else:
+            # logger.debug("Blocked LLM sentence - not agent turn")
+            logger.info("Blocked LLM sentence - not agent turn")
+
     async def on_tts_partial_audio(self, audio: bytes):
-        logger.debug(
-            "Conversation on_tts_partial_audio override handler called",
-            extra={"handler": "on_tts_partial_audio", "audio_size": len(audio)},
-        )
-        await self.websocket.send_bytes(audio)
+        if self.turn_taking_manager.is_agent_turn:
+            # logger.debug(f"Sending audio to websocket: {len(audio)} bytes")
+            logger.info(f"Sending audio to websocket: {len(audio)} bytes")
+            await self.websocket.send_bytes(audio)
+        else:
+            # logger.debug("Blocked TTS audio - not agent turn")
+            logger.info("Blocked TTS audio - not agent turn")
 
     async def start(self):
         self.is_running = True
@@ -68,18 +86,21 @@ class ConversationApp:
                 if "bytes" in data:
                     await self.stt.add_audio_chunk(data["bytes"])
                     continue
+                elif "text" in data:
+                    pass
                 else:
                     logger.error(f"Unknown message type: {data}")
             except WebSocketException:
                 logger.info("Client disconnected")
-                self.is_running = False
                 break
             except BaseException as e:
                 logger.error(f"Error receiving data: {e}")
-                self.is_running = False
                 break
+
+        await self.stop()
 
     async def stop(self):
         self.is_running = False
+        await self.turn_taking_manager.reset()
         await self.stt.stop()
         await self.tts.stop()

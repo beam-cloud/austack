@@ -1,4 +1,5 @@
 import json
+import logging
 import time
 from typing import Optional
 
@@ -6,6 +7,8 @@ import websocket
 
 from .audio.interface import AudioInterface
 from .audio.config import AudioConfig
+
+logger = logging.getLogger(__name__)
 
 
 class ConversationClient:
@@ -57,36 +60,36 @@ class ConversationClient:
             # Set a shorter timeout for recv() operations
             self.websocket.settimeout(0.1)
 
-            print(f"Connected to WebSocket: {self.websocket_url}")
+            logger.info(f"Connected to WebSocket: {self.websocket_url}")
         except Exception as e:
-            print(f"Error connecting to websocket: {e}")
+            logger.info(f"Error connecting to websocket: {e}")
             raise
 
     def send_audio_data(self, audio_data: bytes):
         """Send audio data over WebSocket."""
         if not self.websocket or not self.running:
-            print("Cannot send audio: WebSocket not connected")
+            logger.info("Cannot send audio: WebSocket not connected")
             return
 
         try:
             self.websocket.send(audio_data, opcode=websocket.ABNF.OPCODE_BINARY)
         except websocket.WebSocketConnectionClosedException:
-            print("Cannot send audio: WebSocket connection closed")
+            logger.info("Cannot send audio: WebSocket connection closed")
         except Exception as e:
-            print(f"Error sending audio data: {e}")
+            logger.info(f"Error sending audio data: {e}")
 
     def send_message(self, message: dict):
         if not self.websocket or not self.running:
-            print("Cannot send message: WebSocket not connected")
+            logger.info("Cannot send message: WebSocket not connected")
             return
 
         try:
             message_str = json.dumps(message)
             self.websocket.send(message_str)
         except websocket.WebSocketConnectionClosedException:
-            print("Cannot send message: WebSocket connection closed")
+            logger.info("Cannot send message: WebSocket connection closed")
         except Exception as e:
-            print(f"Error sending message: {e}")
+            logger.info(f"Error sending message: {e}")
 
     def send_stop_speaking_signal(self):
         self.send_message({"type": "on_user_stop_speaking"})
@@ -107,8 +110,8 @@ class ConversationClient:
             self.audio_interface.start()
 
             self.running = True
-            print(f"Conversation started with {self.websocket_url}")
-            print("Press Ctrl+C to stop the conversation")
+            logger.info(f"Conversation started with {self.websocket_url}")
+            logger.info("Press Ctrl+C to stop the conversation")
 
             while self.running:
                 try:
@@ -118,9 +121,9 @@ class ConversationClient:
                     elif isinstance(message, str):
                         try:
                             data = json.loads(message)
-                            print(f"Received message: {data}")
+                            logger.info(f"Received message: {data}")
                         except json.JSONDecodeError:
-                            print(f"Received non-JSON text message: {message}")
+                            logger.info(f"Received non-JSON text message: {message}")
                 except websocket.WebSocketTimeoutException:
                     break
                 except websocket.WebSocketConnectionClosedException:
@@ -128,12 +131,12 @@ class ConversationClient:
                 except ConnectionResetError:
                     self.running = False
                 except Exception as e:
-                    print(f"Error during conversation: {e}")
+                    logger.info(f"Error during conversation: {e}")
 
         except KeyboardInterrupt:
-            print("\nKeyboard interrupt - stopping conversation")
+            logger.info("\nKeyboard interrupt - stopping conversation")
         except Exception as e:
-            print(f"Error during conversation: {e}")
+            logger.info(f"Error during conversation: {e}")
         finally:
             self.stop_conversation()
 

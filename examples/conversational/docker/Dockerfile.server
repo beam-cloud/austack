@@ -6,11 +6,16 @@ RUN apt-get update && apt-get install -y \
     portaudio19-dev \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
+RUN pip install uv uvicorn
+
+COPY uv.lock /app/uv.lock
+COPY pyproject.toml /app/pyproject.toml
+COPY README.md /app/README.md
+
+RUN uv sync
+RUN uv add uvicorn
 
 COPY . /app
-
-RUN pip install --no-cache-dir -e .
-
 EXPOSE 8000
 
-CMD ["python", "-m", "austack.server.app"]
+CMD ["uv", "run", "uvicorn", "austack.server.app:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

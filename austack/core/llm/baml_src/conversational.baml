@@ -13,6 +13,7 @@ function GenerateResponse(input: ConversationalAgentInput) -> string {
   client "openai/gpt-4o"
   prompt #"
     Make sure to always end your sentences with a period, question mark, or exclamation mark. You can have multiple sentences in one response.
+    Give at least 3 sentences in your response.
 
     {{ input.system_prompt }}
     {{ input.conversation_history }}

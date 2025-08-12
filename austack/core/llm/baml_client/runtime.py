@@ -17,17 +17,16 @@ import typing_extensions
 import baml_py
 
 from . import types, stream_types, type_builder
-from .globals import (
-    DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME as __runtime__,
-    DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_CTX as __ctx__manager__,
-)
+from .globals import DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME as __runtime__, DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_CTX as __ctx__manager__
 
 
 class BamlCallOptions(typing.TypedDict, total=False):
     tb: typing_extensions.NotRequired[type_builder.TypeBuilder]
     client_registry: typing_extensions.NotRequired[baml_py.baml_py.ClientRegistry]
     env: typing_extensions.NotRequired[typing.Dict[str, typing.Optional[str]]]
-    collector: typing_extensions.NotRequired[typing.Union[baml_py.baml_py.Collector, typing.List[baml_py.baml_py.Collector]]]
+    collector: typing_extensions.NotRequired[
+        typing.Union[baml_py.baml_py.Collector, typing.List[baml_py.baml_py.Collector]]
+    ]
 
 
 class _ResolvedBamlOptions:
@@ -47,6 +46,9 @@ class _ResolvedBamlOptions:
         self.client_registry = client_registry
         self.collectors = collectors
         self.env_vars = env_vars
+
+
+
 
 
 class DoNotUseDirectlyCallManager:
@@ -69,7 +71,11 @@ class DoNotUseDirectlyCallManager:
             baml_tb = None
         client_registry = self.__baml_options.get("client_registry")
         collector = self.__baml_options.get("collector")
-        collectors_as_list = collector if isinstance(collector, list) else [collector] if collector is not None else []
+        collectors_as_list = (
+            collector
+            if isinstance(collector, list)
+            else [collector] if collector is not None else []
+        )
         env_vars = os.environ.copy()
         for k, v in self.__baml_options.get("env", {}).items():
             if v is not None:
@@ -87,7 +93,9 @@ class DoNotUseDirectlyCallManager:
     def merge_options(self, options: BamlCallOptions) -> "DoNotUseDirectlyCallManager":
         return DoNotUseDirectlyCallManager({**self.__baml_options, **options})
 
-    async def call_function_async(self, *, function_name: str, args: typing.Dict[str, typing.Any]) -> baml_py.baml_py.FunctionResult:
+    async def call_function_async(
+        self, *, function_name: str, args: typing.Dict[str, typing.Any]
+    ) -> baml_py.baml_py.FunctionResult:
         resolved_options = self.__resolve()
         return await __runtime__.call_function(
             function_name,
@@ -104,7 +112,9 @@ class DoNotUseDirectlyCallManager:
             resolved_options.env_vars,
         )
 
-    def call_function_sync(self, *, function_name: str, args: typing.Dict[str, typing.Any]) -> baml_py.baml_py.FunctionResult:
+    def call_function_sync(
+        self, *, function_name: str, args: typing.Dict[str, typing.Any]
+    ) -> baml_py.baml_py.FunctionResult:
         resolved_options = self.__resolve()
         ctx = __ctx__manager__.get()
         return __runtime__.call_function_sync(
@@ -162,7 +172,7 @@ class DoNotUseDirectlyCallManager:
             args,
             # this is always None, we set this later!
             # on_event
-            None,
+            None,   
             # ctx
             ctx,
             # tb
