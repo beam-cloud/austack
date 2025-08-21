@@ -54,9 +54,7 @@ class AuStackApp:
         return self.app
 
 
-# Default app instance for backward compatibility
-austack_app = AuStackApp()
-app = austack_app.get_app()
+app = AuStackApp().get_app()
 
 if __name__ == "__main__":
     import uvicorn

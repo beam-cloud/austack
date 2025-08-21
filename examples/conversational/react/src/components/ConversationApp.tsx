@@ -4,7 +4,7 @@ import { PulsingBubble } from "./PulsingBubble";
 
 export const ConversationApp: React.FC = () => {
   const [websocketUrl, setWebsocketUrl] = useState(
-    "ws://localhost:8000/ws/conversation"
+    "wss://austack-example-conversational-86b8dbb-v2.app.beam.cloud"
   );
   const [conversationState, setConversationState] = useState<ConversationState>(
     {
