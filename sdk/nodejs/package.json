@@ -1,0 +1,49 @@
+{
+  "name": "austack",
+  "version": "0.1.0",
+  "description": "TypeScript/JavaScript client SDK for Austack conversational AI",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build",
+    "dev": "tsc --watch",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "austack",
+    "conversational-ai",
+    "websocket",
+    "audio",
+    "speech",
+    "typescript",
+    "javascript"
+  ],
+  "author": "Austack",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "typescript": ">=4.5.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/austack/austack"
+  },
+  "bugs": {
+    "url": "https://github.com/austack/austack/issues"
+  },
+  "homepage": "https://github.com/austack/austack#readme"
+}

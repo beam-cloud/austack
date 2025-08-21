@@ -1,4 +1,3 @@
-import React from 'react';
 import { ConversationApp } from './components/ConversationApp';
 
 function App() {
