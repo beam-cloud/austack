@@ -21,12 +21,7 @@ import sys
 from pathlib import Path
 from typing import List, Dict, Optional
 
-try:
-    from dotenv import load_dotenv, set_key, find_dotenv
-except ImportError:
-    print("Error: python-dotenv is required but not installed.")
-    print("Please install it with: pip install python-dotenv")
-    sys.exit(1)
+# Import dotenv functions when needed
 
 
 class EnvSetup:
@@ -51,7 +46,13 @@ class EnvSetup:
     def _load_existing_env(self):
         """Load existing environment variables from .env file."""
         if self.env_file.exists():
-            load_dotenv(self.env_file)
+            try:
+                from dotenv import load_dotenv
+                load_dotenv(self.env_file)
+            except ImportError:
+                print("Error: python-dotenv is required but not installed.")
+                print("Please install it with: pip install python-dotenv")
+                sys.exit(1)
             print(f"Found existing .env file at: {self.env_file.absolute()}")
 
             # Read the file to get current key-value pairs
@@ -106,19 +107,37 @@ class EnvSetup:
     def add_key_to_env(self, key: str, value: str):
         """Add a key-value pair to the .env file."""
         try:
+            from dotenv import set_key
             set_key(str(self.env_file), key, value)
             print(f"✅ Added {key} to {self.env_file}")
             self.env_vars[key] = value
+        except ImportError:
+            print("Error: python-dotenv is required but not installed.")
+            print("Please install it with: pip install python-dotenv")
+            sys.exit(1)
         except Exception as e:
             print(f"❌ Error adding {key} to .env file: {e}")
 
-    def setup_keys(self, keys: List[str]):
+    def setup_keys(self, keys: List[str], empty_keys: List[str] = None, set_pairs: List[str] = None):
         """Set up the provided keys in the environment file."""
-        if not keys:
+        empty_keys = empty_keys or []
+        set_pairs = set_pairs or []
+        
+        # Parse set pairs into key-value dictionary
+        set_dict = {}
+        for pair in set_pairs:
+            if "=" not in pair:
+                print(f"❌ Invalid format for --set: {pair}. Use KEY=VALUE format.")
+                return
+            key, value = pair.split("=", 1)
+            set_dict[key.strip()] = value
+        
+        if not keys and not empty_keys and not set_dict:
             print("No keys provided. Usage: python setup-env.py KEY1 KEY2 ...")
             return
 
-        print(f"🚀 Setting up environment variables: {', '.join(keys)}")
+        all_keys = keys + empty_keys + list(set_dict.keys())
+        print(f"🚀 Setting up environment variables: {', '.join(all_keys)}")
         print(f"📁 Working with .env file: {self.env_file.absolute()}")
 
         # Create .env file if needed
@@ -126,6 +145,8 @@ class EnvSetup:
 
         missing_keys = []
         existing_keys = []
+        empty_to_add = []
+        set_to_add = []
 
         # Check which keys are missing
         for key in keys:
@@ -133,6 +154,20 @@ class EnvSetup:
                 existing_keys.append(key)
             else:
                 missing_keys.append(key)
+
+        # Check empty keys
+        for key in empty_keys:
+            if self.check_key_exists(key):
+                existing_keys.append(key)
+            else:
+                empty_to_add.append(key)
+
+        # Check set keys
+        for key in set_dict.keys():
+            if self.check_key_exists(key):
+                existing_keys.append(key)
+            else:
+                set_to_add.append(key)
 
         # Report existing keys
         if existing_keys:
@@ -146,11 +181,24 @@ class EnvSetup:
                 value = self.get_user_input(key)
                 self.add_key_to_env(key, value)
 
+        # Set up empty keys
+        if empty_to_add:
+            print(f"\n🔧 Setting empty values for: {', '.join(empty_to_add)}")
+            for key in empty_to_add:
+                self.add_key_to_env(key, "")
+
+        # Set up keys with values
+        if set_to_add:
+            print(f"\n🔧 Setting values for: {', '.join(set_to_add)}")
+            for key in set_to_add:
+                self.add_key_to_env(key, set_dict[key])
+
         print(f"\n🎉 Environment setup complete!")
         print(f"📄 Your .env file is located at: {self.env_file.absolute()}")
 
-        if missing_keys:
-            print(f"✨ Added {len(missing_keys)} new environment variable(s)")
+        added_count = len(missing_keys) + len(empty_to_add) + len(set_to_add)
+        if added_count > 0:
+            print(f"✨ Added {added_count} new environment variable(s)")
 
 
 def main():
@@ -162,6 +210,9 @@ def main():
 Examples:
   python scripts/setup-env.py DEEPGRAM_API_KEY
   python scripts/setup-env.py DEEPGRAM_API_KEY OPENAI_API_KEY BAML_API_KEY
+  python scripts/setup-env.py --empty BEAM_AUTH_TOKEN --empty API_TOKEN
+  python scripts/setup-env.py --set API_KEY=abc123 --set DEBUG=true
+  python scripts/setup-env.py OPENAI_API_KEY --empty BEAM_AUTH_TOKEN --set ENV=production
   python -m scripts.setup-env DEEPGRAM_API_KEY
         """,
     )
@@ -171,6 +222,10 @@ Examples:
     parser.add_argument("--env-file", type=str, help="Path to .env file (default: auto-detect or create .env in current directory)")
 
     parser.add_argument("--list-common", action="store_true", help="List common environment variables for AuStack")
+
+    parser.add_argument("--empty", action="append", help="Environment variable keys to set as empty (can be used multiple times)")
+
+    parser.add_argument("--set", action="append", help="Set environment variable with KEY=VALUE format (can be used multiple times)")
 
     args = parser.parse_args()
 
@@ -183,7 +238,7 @@ Examples:
         print("\nUsage: python scripts/setup-env.py DEEPGRAM_API_KEY OPENAI_API_KEY")
         return
 
-    if not args.keys:
+    if not args.keys and not args.empty and not args.set:
         print("❌ No environment keys provided!")
         print("Usage: python scripts/setup-env.py KEY1 KEY2 ...")
         print("Use --list-common to see common keys for AuStack")
@@ -191,7 +246,7 @@ Examples:
 
     try:
         env_setup = EnvSetup(args.env_file)
-        env_setup.setup_keys(args.keys)
+        env_setup.setup_keys(args.keys, args.empty, args.set)
     except KeyboardInterrupt:
         print("\n\n❌ Setup cancelled by user")
         sys.exit(1)
